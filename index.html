@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IHK Quiz – Spedition & Logistikdienstleistungen (2. Lehrjahr)</title>
+
+<style>
+body{
+font-family: Arial, Helvetica, sans-serif;
+background:#f4f6f8;
+margin:0;
+padding:0;
+display:flex;
+justify-content:center;
+}
+.container{
+background:white;
+max-width:900px;
+width:95%;
+margin:40px 0;
+padding:30px;
+border-radius:8px;
+box-shadow:0 8px 25px rgba(0,0,0,0.1);
+}
+h1{
+margin-top:0;
+font-size:22px;
+text-align:center;
+}
+.progress{
+font-weight:bold;
+margin-bottom:15px;
+}
+.question{
+font-size:18px;
+margin-bottom:20px;
+}
+.answer-btn{
+display:block;
+width:100%;
+margin:8px 0;
+padding:12px;
+border-radius:6px;
+border:1px solid #ccc;
+background:#fafafa;
+cursor:pointer;
+text-align:left;
+}
+.answer-btn:hover{
+background:#eef2f7;
+}
+.correct{
+background:#d4edda !important;
+border:1px solid #28a745;
+}
+.wrong{
+background:#f8d7da !important;
+border:1px solid #dc3545;
+}
+.feedback{
+margin-top:15px;
+padding:15px;
+border-radius:6px;
+background:#f1f1f1;
+font-size:14px;
+}
+.next-btn{
+margin-top:15px;
+padding:10px 18px;
+border:none;
+background:#1e4e79;
+color:white;
+border-radius:5px;
+cursor:pointer;
+}
+.result{
+text-align:center;
+}
+.footer-icons{
+margin-top:20px;
+text-align:center;
+opacity:0.7;
+font-size:20px;
+}
+@media(max-width:600px){
+.container{padding:20px;}
+.question{font-size:16px;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🚢✈️🏢 IHK-Prüfungstraining – 2. Lehrjahr</h1>
+<div id="quiz"></div>
+</div>
+
+<script>
+// ---------------------- FRAGENPOOL (50 FRAGEN) ----------------------
+const questions = [
+
+{
+question: "Ein Exportkunde liefert Ware FOB Hamburg. Wer trägt die Kosten des Seefracht-Hauptlaufs?",
+answers: [
+{text:"Der Verkäufer bis zum Bestimmungshafen",correct:false,explanation:"FOB bedeutet, dass der Verkäufer die Ware an Bord des Schiffes liefert. Ab diesem Zeitpunkt trägt der Käufer die Hauptfrachtkosten."},
+{text:"Der Käufer ab Verladung an Bord",correct:true,explanation:"Bei FOB geht die Gefahr und Kostentragung mit der Verladung an Bord über. Der Käufer zahlt daher die Seefracht."},
+{text:"Der Frachtführer automatisch",correct:false,explanation:"Der Frachtführer erhält die Fracht, trägt sie aber nicht selbst."},
+{text:"Die Versicherungsgesellschaft",correct:false,explanation:"Versicherung deckt Risiken, übernimmt aber keine regulären Transportkosten."}
+]
+},
+
+{
+question: "Ein Luftfrachtauftrag hat 1.200 kg Bruttogewicht und 8 m³ Volumen. Das Volumengewicht beträgt 1 m³ = 167 kg. Welches Gewicht ist frachtpflichtig?",
+answers:[
+{text:"1.200 kg",correct:false,explanation:"Das Bruttogewicht allein ist nicht entscheidend, wenn das Volumengewicht höher ist."},
+{text:"1.336 kg",correct:true,explanation:"8 m³ × 167 kg = 1.336 kg Volumengewicht. Da dieses höher ist als 1.200 kg, gilt es als frachtpflichtig."},
+{text:"8.000 kg",correct:false,explanation:"Das ist rechnerisch falsch."},
+{text:"167 kg",correct:false,explanation:"167 kg ist nur der Umrechnungsfaktor pro Kubikmeter."}
+]
+},
+
+{
+question:"Ein Unternehmen erzielt 500.000 € Umsatz. Variable Kosten betragen 300.000 €, Fixkosten 150.000 €. Wie hoch ist der Gewinn?",
+answers:[
+{text:"50.000 €",correct:true,explanation:"Deckungsbeitrag = 500.000 - 300.000 = 200.000 €. Gewinn = 200.000 - 150.000 = 50.000 €."},
+{text:"200.000 €",correct:false,explanation:"Das ist nur der Deckungsbeitrag."},
+{text:"150.000 €",correct:false,explanation:"Das sind die Fixkosten."},
+{text:"350.000 €",correct:false,explanation:"Rechnerisch nicht korrekt."}
+]
+},
+
+{
+question: "Ein Luftfrachtauftrag umfasst 3,5 m³ bei einem Bruttogewicht von 400 kg. Der Faktor beträgt 167 kg/m³. Welches Gewicht ist frachtpflichtig?",
+answers: [
+{text:"400 kg", correct:false, explanation:"Das Bruttogewicht ist nur maßgeblich, wenn es höher ist als das Volumengewicht."},
+{text:"585 kg", correct:true, explanation:"3,5 × 167 = 584,5 kg → aufgerundet 585 kg. Da dieses höher als 400 kg ist, gilt es als frachtpflichtig."},
+{text:"167 kg", correct:false, explanation:"167 kg ist lediglich der Umrechnungsfaktor pro Kubikmeter."},
+{text:"3.500 kg", correct:false, explanation:"Das wäre eine falsche Umrechnung des Volumens."}
+]
+},
+
+{
+question: "Ein Auftrag erzielt 15.000 € Erlös. Die variablen Kosten betragen 9.000 €. Wie hoch ist der Deckungsbeitrag?",
+answers: [
+{text:"6.000 €", correct:true, explanation:"Deckungsbeitrag = Erlös – variable Kosten = 15.000 – 9.000 = 6.000 €. Dieser Betrag deckt die Fixkosten."},
+{text:"9.000 €", correct:false, explanation:"Das sind die variablen Kosten."},
+{text:"15.000 €", correct:false, explanation:"Das ist der Umsatz."},
+{text:"24.000 €", correct:false, explanation:"Rechnerisch falsch."}
+]
+},
+
+{
+question: "Die Fixkosten eines Bereichs betragen 120.000 €. Der Deckungsbeitrag pro Sendung liegt bei 80 €. Wie viele Sendungen sind zur Erreichung des Break-even erforderlich?",
+answers: [
+{text:"1.200 Sendungen", correct:false, explanation:"Rechnerisch nicht korrekt."},
+{text:"960 Sendungen", correct:false, explanation:"Rechnerisch nicht korrekt."},
+{text:"1.500 Sendungen", correct:true, explanation:"120.000 € / 80 € = 1.500 Sendungen. Erst dann sind die Fixkosten gedeckt."},
+{text:"800 Sendungen", correct:false, explanation:"Zu geringe Menge zur Kostendeckung."}
+]
+},
+
+{
+question: "Ein Lieferant gewährt 10 % Rabatt auf 50.000 € Listeneinkaufspreis. Zusätzlich fallen 2.000 € Bezugskosten an. Wie hoch ist der Bezugspreis?",
+answers: [
+{text:"47.000 €", correct:true, explanation:"50.000 – 5.000 = 45.000 €; + 2.000 € Bezugskosten = 47.000 € Bezugspreis."},
+{text:"45.000 €", correct:false, explanation:"Das ist der Zieleinkaufspreis ohne Bezugskosten."},
+{text:"52.000 €", correct:false, explanation:"Rabatt wurde nicht berücksichtigt."},
+{text:"43.000 €", correct:false, explanation:"Rechnerisch falsch."}
+]
+},
+
+{
+question: "Welche Funktion hat ein Konnossement im Seeverkehr?",
+answers: [
+{text:"Es ist ein Traditionspapier und verbrieft das Eigentum an der Ware.", correct:true, explanation:"Das Konnossement dient als Warenwertpapier. Mit Übergabe kann das Eigentum übertragen werden."},
+{text:"Es ist lediglich eine Rechnung.", correct:false, explanation:"Eine Rechnung ist kein Traditionspapier."},
+{text:"Es ersetzt die Versicherung.", correct:false, explanation:"Transportversicherung ist separat abzuschließen."},
+{text:"Es dient nur der Zollabfertigung.", correct:false, explanation:"Zollunterlagen sind eigenständig."}
+]
+},
+
+{
+question: "Welche Besonderheit hat die Air Waybill (AWB)?",
+answers: [
+{text:"Sie ist ein Traditionspapier.", correct:false, explanation:"Im Gegensatz zum Konnossement hat sie keine Traditionsfunktion."},
+{text:"Sie dient als Beförderungsvertrag und Nachweis, aber ohne Eigentumsübertragung.", correct:true, explanation:"Die AWB bestätigt den Luftfrachtvertrag, ist jedoch kein Warenwertpapier."},
+{text:"Sie ist ein Versicherungsdokument.", correct:false, explanation:"Versicherungspolice ist separat."},
+{text:"Sie ersetzt das Akkreditiv.", correct:false, explanation:"Das Akkreditiv ist ein Zahlungsinstrument."}
+]
+},
+
+{
+question: "Ein Lager weist einen Jahresverbrauch von 2.400 Einheiten bei einem durchschnittlichen Lagerbestand von 400 Einheiten auf. Wie hoch ist die Umschlagshäufigkeit?",
+answers: [
+{text:"6", correct:true, explanation:"2.400 / 400 = 6. Das Lager wird sechsmal pro Jahr umgeschlagen."},
+{text:"400", correct:false, explanation:"Das ist der durchschnittliche Bestand."},
+{text:"2.000", correct:false, explanation:"Rechnerisch falsch."},
+{text:"12", correct:false, explanation:"Falsche Berechnung."}
+]
+},
+
+// -------- Fragen 11–20 --------
+
+{
+question: "Bei einem Akkreditiv verpflichtet sich die Bank zur Zahlung, wenn…",
+answers: [
+{text:"die Ware unbeschädigt ankommt.", correct:false, explanation:"Die Bank prüft Dokumente, nicht den Warenzustand."},
+{text:"alle im Akkreditiv geforderten Dokumente korrekt vorgelegt werden.", correct:true, explanation:"Die Zahlung erfolgt gegen Dokumente, nicht gegen Ware."},
+{text:"der Käufer zustimmt.", correct:false, explanation:"Die Bankgarantie wirkt unabhängig vom Käufer."},
+{text:"der Zoll die Ware freigibt.", correct:false, explanation:"Zollfreigabe ist kein Zahlungskriterium."}
+]
+},
+
+{
+question: "Ein Auftrag verursacht variable Kosten von 7.000 € und Fixkostenanteile von 2.000 €. Der Erlös beträgt 10.000 €. Wie hoch ist der Gewinn?",
+answers: [
+{text:"1.000 €", correct:true, explanation:"Deckungsbeitrag = 10.000 – 7.000 = 3.000 €. Gewinn = 3.000 – 2.000 = 1.000 €."},
+{text:"3.000 €", correct:false, explanation:"Das ist nur der Deckungsbeitrag."},
+{text:"8.000 €", correct:false, explanation:"Rechnerisch falsch."},
+{text:"2.000 €", correct:false, explanation:"Das sind die Fixkosten."}
+]
+},
+
+{
+question: "Ein Lieferant bietet 3 % Skonto bei Zahlung innerhalb von 10 Tagen auf 30.000 €. Wie hoch ist der Skontobetrag?",
+answers: [
+{text:"900 €", correct:true, explanation:"30.000 × 0,03 = 900 €. Dieser Betrag kann bei fristgerechter Zahlung abgezogen werden."},
+{text:"3.000 €", correct:false, explanation:"Das wären 10 %."},
+{text:"300 €", correct:false, explanation:"Rechnerisch falsch."},
+{text:"600 €", correct:false, explanation:"Rechnerisch falsch."}
+]
+},
+
+{
+question: "Bei Incoterm CIF trägt der Verkäufer welche Kosten?",
+answers: [
+{text:"Nur Inlandstransport.", correct:false, explanation:"CIF umfasst mehr als den Inlandstransport."},
+{text:"Fracht und Versicherung bis zum Bestimmungshafen.", correct:true, explanation:"CIF = Cost, Insurance and Freight bis zum Bestimmungshafen."},
+{text:"Nur Versicherung.", correct:false, explanation:"Fracht ist ebenfalls enthalten."},
+{text:"Nur Verpackung.", correct:false, explanation:"Das wäre unvollständig."}
+]
+},
+
+{
+question: "Welche Kennzahl beschreibt die durchschnittliche Lagerdauer?",
+answers: [
+{text:"365 / Umschlagshäufigkeit", correct:true, explanation:"Die durchschnittliche Lagerdauer ergibt sich aus 365 Tagen geteilt durch die Umschlagshäufigkeit."},
+{text:"Umschlag × Bestand", correct:false, explanation:"Das ist keine gültige Formel."},
+{text:"Bestand / Verbrauch", correct:false, explanation:"Unvollständig."},
+{text:"Fixkosten / Umsatz", correct:false, explanation:"Das ist eine Wirtschaftlichkeitskennzahl."}
+]
+},
+
+{
+question: "Ein Seefrachtauftrag verursacht 4.500 € variable Kosten. Die Fixkostenbelastung pro Auftrag beträgt 1.000 €. Der Verkaufspreis liegt bei 6.000 €. Wie hoch ist der Deckungsbeitrag?",
+answers: [
+{text:"500 €", correct:false, explanation:"500 € wäre der Gewinn nach Abzug aller Kosten."},
+{text:"1.500 €", correct:true, explanation:"Deckungsbeitrag = Verkaufspreis – variable Kosten = 6.000 – 4.500 = 1.500 €. Fixkosten werden erst danach berücksichtigt."},
+{text:"1.000 €", correct:false, explanation:"Das entspricht nur der Fixkostenbelastung."},
+{text:"2.500 €", correct:false, explanation:"Rechnerisch nicht korrekt."}
+]
+},
+
+{
+question: "Ein Containertransport per See dauert 28 Tage und kostet 2.000 €. Luftfracht dauert 4 Tage und kostet 9.000 €. Bei Vertragsstrafe von 500 € pro Verzugstag: Ab wie vielen Verzugstagen wird Luftfracht wirtschaftlicher?",
+answers: [
+{text:"10 Tage", correct:false, explanation:"10 Tage × 500 € = 5.000 €. Kostendifferenz beträgt jedoch 7.000 €."},
+{text:"14 Tage", correct:true, explanation:"Kostendifferenz: 9.000 – 2.000 = 7.000 €. 7.000 € / 500 € = 14 Tage. Ab 14 Verzugstagen lohnt Luftfracht wirtschaftlich."},
+{text:"7 Tage", correct:false, explanation:"7 Tage × 500 € = 3.500 €, nicht ausreichend."},
+{text:"28 Tage", correct:false, explanation:"Das wäre die Gesamtlaufzeit See."}
+]
+},
+
+{
+question: "Welche Aufgabe übernimmt ATLAS im Exportprozess?",
+answers: [
+{text:"Elektronische Zollanmeldung und -abwicklung", correct:true, explanation:"ATLAS ist das IT-Verfahren zur elektronischen Zollabwicklung im Außenhandel."},
+{text:"Erstellung von Akkreditiven", correct:false, explanation:"Akkreditive werden von Banken ausgestellt."},
+{text:"Berechnung von Lagerkennzahlen", correct:false, explanation:"ATLAS ist kein Lagerverwaltungssystem."},
+{text:"Transportversicherung", correct:false, explanation:"Versicherung erfolgt separat."}
+]
+},
+
+{
+question: "Ein Unternehmen benötigt jährlich 10.000 Einheiten. Bestellkosten pro Bestellung: 200 €. Lagerhaltungskosten pro Stück/Jahr: 5 €. Welche Tendenz senkt die Gesamtkosten?",
+answers: [
+{text:"Sehr kleine Bestellmengen", correct:false, explanation:"Viele Bestellungen erhöhen die Bestellkosten."},
+{text:"Sehr große Bestellmengen", correct:false, explanation:"Große Mengen erhöhen die Lagerhaltungskosten."},
+{text:"Optimale Bestellmenge (Kompromiss aus Bestell- und Lagerkosten)", correct:true, explanation:"Die optimale Bestellmenge minimiert die Summe aus Bestell- und Lagerhaltungskosten."},
+{text:"Gar keine Bestellung planen", correct:false, explanation:"Bedarf muss gedeckt werden."}
+]
+},
+
+{
+question: "Bei einer Exportlieferung DAP Paris trägt der Verkäufer welche Kosten?",
+answers: [
+{text:"Nur bis zur deutschen Grenze", correct:false, explanation:"DAP geht weiter als die Grenze."},
+{text:"Bis zum benannten Bestimmungsort ohne Entladung", correct:true, explanation:"DAP bedeutet Lieferung am Bestimmungsort, jedoch ohne Entladung."},
+{text:"Nur Seefracht", correct:false, explanation:"DAP ist verkehrsträgerunabhängig."},
+{text:"Nur Versicherung", correct:false, explanation:"Versicherung ist nicht automatisch enthalten."}
+]
+},
+
+// -------- Fragen 21–30 --------
+
+{
+question: "Ein Lager hat 365 Öffnungstage. Die Umschlagshäufigkeit beträgt 12. Wie hoch ist die durchschnittliche Lagerdauer?",
+answers: [
+{text:"30 Tage", correct:true, explanation:"365 / 12 ≈ 30 Tage. So lange liegt Ware durchschnittlich im Lager."},
+{text:"12 Tage", correct:false, explanation:"Das ist die Umschlagshäufigkeit."},
+{text:"365 Tage", correct:false, explanation:"Das wäre bei Umschlag 1."},
+{text:"60 Tage", correct:false, explanation:"Rechnerisch nicht korrekt."}
+]
+},
+
+{
+question: "Welche Aussage zur Haftung im Luftverkehr ist korrekt?",
+answers: [
+{text:"Haftung erfolgt unbegrenzt.", correct:false, explanation:"Die Haftung ist begrenzt nach internationalen Regelwerken."},
+{text:"Haftung richtet sich nach dem Montrealer Übereinkommen.", correct:true, explanation:"Im internationalen Luftverkehr gilt das Montrealer Übereinkommen mit Haftungshöchstgrenzen."},
+{text:"Es gibt keine Haftungsregelungen.", correct:false, explanation:"Haftung ist klar geregelt."},
+{text:"Nur nationale Gesetze gelten.", correct:false, explanation:"Internationale Abkommen haben Vorrang."}
+]
+},
+
+{
+question: "Ein Angebot über 80.000 € enthält 5 % Rabatt und 2 % Skonto. In welcher Reihenfolge wird korrekt gerechnet?",
+answers: [
+{text:"Skonto vor Rabatt", correct:false, explanation:"Rabatt wird zuerst vom Listenpreis abgezogen."},
+{text:"Rabatt vor Skonto", correct:true, explanation:"Erst Rabatt → Zieleinkaufspreis, danach Skonto vom reduzierten Betrag."},
+{text:"Beides gleichzeitig", correct:false, explanation:"Das wäre rechnerisch falsch."},
+{text:"Nur Skonto berücksichtigen", correct:false, explanation:"Rabatt muss ebenfalls berücksichtigt werden."}
+]
+},
+
+{
+question: "Welche Kennzahl zeigt, wie wirtschaftlich Lagerfläche genutzt wird?",
+answers: [
+{text:"Flächenproduktivität", correct:true, explanation:"Flächenproduktivität zeigt den Umschlag oder Ertrag pro Quadratmeter Lagerfläche."},
+{text:"Eigenkapitalquote", correct:false, explanation:"Das ist eine Finanzkennzahl."},
+{text:"Liquiditätsgrad", correct:false, explanation:"Das ist eine Zahlungsfähigkeitskennzahl."},
+{text:"Deckungsbeitragssatz", correct:false, explanation:"Das betrifft die Kostenrechnung."}
+]
+},
+
+{
+question: "Welche Dokumente sind bei einem Dokumentenakkreditiv entscheidend?",
+answers: [
+{text:"Nur Handelsrechnung", correct:false, explanation:"Mehrere Dokumente sind gefordert."},
+{text:"Die im Akkreditiv exakt benannten Dokumente", correct:true, explanation:"Die Bank prüft ausschließlich die im Akkreditiv geforderten Dokumente auf formale Richtigkeit."},
+{text:"Nur Lieferschein", correct:false, explanation:"Unzureichend."},
+{text:"Nur Zollbeleg", correct:false, explanation:"Nicht ausreichend."}
+]
+},
+
+{
+question: "Ein Lagerdienstleister kalkuliert 15 € pro Palette Einlagerung und 10 € pro Auslagerung. Bei 500 Palettenumschlägen pro Monat – welcher Monatsumsatz entsteht?",
+answers: [
+{text:"12.500 €", correct:true, explanation:"500 × (15 + 10) = 500 × 25 = 12.500 €."},
+{text:"7.500 €", correct:false, explanation:"Nur Einlagerung berücksichtigt."},
+{text:"5.000 €", correct:false, explanation:"Nur Auslagerung berücksichtigt."},
+{text:"25.000 €", correct:false, explanation:"Doppelt gerechnet."}
+]
+},
+
+{
+question: "Welche Aufgabe erfüllt die Kommissionierung?",
+answers: [
+{text:"Zusammenstellung kundenindividueller Aufträge", correct:true, explanation:"Kommissionierung bedeutet das gezielte Zusammenstellen von Artikeln gemäß Kundenauftrag."},
+{text:"Zollanmeldung", correct:false, explanation:"Nicht Teil der Kommissionierung."},
+{text:"Seefrachtbuchung", correct:false, explanation:"Transportorganisation ist separat."},
+{text:"Kreditprüfung", correct:false, explanation:"Das ist Aufgabe der Finanzabteilung."}
+]
+},
+
+{
+question: "Wann ist ein Export zollrechtlich abgeschlossen?",
+answers: [
+{text:"Bei Rechnungsstellung", correct:false, explanation:"Rechnung beendet das Zollverfahren nicht."},
+{text:"Nach Ausgangsvermerk im ATLAS-System", correct:true, explanation:"Der Ausgangsvermerk bestätigt die tatsächliche Ausfuhr der Ware."},
+{text:"Bei Verladung im Lager", correct:false, explanation:"Das ist nur der physische Beginn."},
+{text:"Bei Zahlungseingang", correct:false, explanation:"Zahlung ist kein Zollkriterium."}
+]
+},
+
+{
+question: "Ein Exporteur vereinbart Zahlung gegen Dokumente (D/P). Welches Risiko bleibt für ihn bestehen?",
+answers: [
+{text:"Die Bank garantiert die Zahlung vollständig.", correct:false, explanation:"Bei D/P gibt es keine Zahlungsgarantie wie beim Akkreditiv."},
+{text:"Der Importeur kann die Annahme der Dokumente verweigern.", correct:true, explanation:"Bei Dokumenteninkasso (D/P) erhält der Importeur die Dokumente nur gegen Zahlung. Er kann jedoch die Zahlung verweigern, wodurch der Exporteur das Warenrisiko trägt."},
+{text:"Der Zoll verweigert automatisch die Ausfuhr.", correct:false, explanation:"Zollabwicklung ist unabhängig von der Zahlungsform."},
+{text:"Die Versicherung übernimmt das Zahlungsausfallrisiko.", correct:false, explanation:"Transportversicherungen decken keine Zahlungsrisiken."}
+]
+},
+
+{
+question: "Ein Luftfrachtpreis beträgt 4,20 € pro kg. Das frachtpflichtige Gewicht liegt bei 850 kg. Zusätzlich werden 120 € Sicherheitszuschlag berechnet. Wie hoch sind die Gesamtkosten?",
+answers: [
+{text:"3.570 €", correct:false, explanation:"850 × 4,20 € = 3.570 €, jedoch fehlt der Zuschlag."},
+{text:"3.690 €", correct:true, explanation:"850 × 4,20 € = 3.570 €; + 120 € Sicherheitszuschlag = 3.690 € Gesamtkosten."},
+{text:"4.200 €", correct:false, explanation:"Das wäre bei 1.000 kg."},
+{text:"3.450 €", correct:false, explanation:"Rechnerisch nicht korrekt."}
+]
+},
+
+// -------- Fragen 31–40 --------
+
+{
+question: "Ein Unternehmen prüft zwei Lagerkonzepte. Konzept A verursacht 120.000 € Fixkosten und 2 € variable Kosten je Einheit. Konzept B verursacht 80.000 € Fixkosten und 4 € variable Kosten je Einheit. Bei welcher Absatzmenge wird Konzept A günstiger?",
+answers: [
+{text:"Bei niedrigen Mengen unterhalb der Schnittmenge.", correct:false, explanation:"Hohe Fixkosten lohnen sich erst bei höheren Mengen."},
+{text:"Wenn die Mehrkosten aus Fixkosten durch niedrigere variable Kosten kompensiert werden.", correct:true, explanation:"Konzept A hat höhere Fixkosten, aber geringere variable Kosten. Es lohnt sich bei hoher Auslastung, wenn die Kostendifferenz je Einheit die Fixkostendifferenz ausgleicht."},
+{text:"Nie, da Fixkosten höher sind.", correct:false, explanation:"Bei ausreichend hoher Menge kann A günstiger werden."},
+{text:"Sofort unabhängig von der Menge.", correct:false, explanation:"Die Menge ist entscheidend."}
+]
+},
+
+{
+question: "Welche Aufgabe übernimmt der Reeder im Seeverkehr?",
+answers: [
+{text:"Organisation und Durchführung der Seebeförderung mit eigenen oder gecharterten Schiffen.", correct:true, explanation:"Der Reeder betreibt das Schiff wirtschaftlich und organisatorisch."},
+{text:"Zollanmeldung im Export.", correct:false, explanation:"Zollanmeldung erfolgt durch Exporteur oder Zollagent."},
+{text:"Erstellung des Akkreditivs.", correct:false, explanation:"Akkreditive werden von Banken ausgestellt."},
+{text:"Festlegung der Incoterms.", correct:false, explanation:"Incoterms werden zwischen Käufer und Verkäufer vereinbart."}
+]
+},
+
+{
+question: "Ein Unternehmen erzielt 800.000 € Umsatz bei 65 % variablen Kosten. Wie hoch ist der Deckungsbeitrag?",
+answers: [
+{text:"280.000 €", correct:true, explanation:"Variable Kosten: 800.000 × 0,65 = 520.000 €. Deckungsbeitrag = 800.000 – 520.000 = 280.000 €."},
+{text:"520.000 €", correct:false, explanation:"Das sind die variablen Kosten."},
+{text:"800.000 €", correct:false, explanation:"Das ist der Umsatz."},
+{text:"65.000 €", correct:false, explanation:"Rechnerisch nicht korrekt."}
+]
+},
+
+{
+question: "Welche Aussage zur Lieferantenauswahl ist betriebswirtschaftlich korrekt?",
+answers: [
+{text:"Nur der Preis ist entscheidend.", correct:false, explanation:"Neben dem Preis spielen Qualität, Lieferzuverlässigkeit und Service eine Rolle."},
+{text:"Es erfolgt eine Nutzwertanalyse unter Berücksichtigung mehrerer Kriterien.", correct:true, explanation:"In der Praxis werden qualitative und quantitative Kriterien bewertet."},
+{text:"Rabatt ist unwichtig.", correct:false, explanation:"Rabatte beeinflussen die Bezugskosten."},
+{text:"Skonto wird nie berücksichtigt.", correct:false, explanation:"Skonto beeinflusst die tatsächlichen Kosten."}
+]
+},
+
+{
+question: "Welche Funktion hat das Manifest im Seeverkehr?",
+answers: [
+{text:"Übersicht aller geladenen Sendungen eines Schiffes.", correct:true, explanation:"Das Manifest enthält die Zusammenstellung aller an Bord befindlichen Güter."},
+{text:"Es ist ein Zahlungsdokument.", correct:false, explanation:"Zahlungsdokumente sind separat."},
+{text:"Es ersetzt das Konnossement.", correct:false, explanation:"Das Konnossement bleibt eigenständiges Dokument."},
+{text:"Es dient nur internen Zwecken ohne Außenwirkung.", correct:false, explanation:"Es hat auch Bedeutung für Zoll und Hafenbehörden."}
+]
+},
+
+{
+question: "Ein Lager hat durchschnittlich 1.000 Paletten Bestand. Der Jahresumsatz beträgt 3.000 Paletten. Wie hoch ist die Kapitalbindung in Umschlägen ausgedrückt?",
+answers: [
+{text:"3 Umschläge pro Jahr", correct:true, explanation:"3.000 / 1.000 = 3. Das Kapital wird dreimal jährlich umgesetzt."},
+{text:"1.000 Umschläge", correct:false, explanation:"Das ist der Bestand."},
+{text:"30 Umschläge", correct:false, explanation:"Rechnerisch falsch."},
+{text:"0,3 Umschläge", correct:false, explanation:"Falsche Division."}
+]
+},
+
+{
+question: "Bei Incoterm EXW trägt der Käufer welche Hauptverantwortung?",
+answers: [
+{text:"Er organisiert und bezahlt den gesamten Transport ab Werk.", correct:true, explanation:"EXW bedeutet Abholung beim Verkäufer. Der Käufer trägt nahezu alle Kosten und Risiken."},
+{text:"Er zahlt nur die Seefracht.", correct:false, explanation:"EXW geht weiter als nur Seefracht."},
+{text:"Er trägt keine Zollkosten.", correct:false, explanation:"Auch Exportformalitäten können beim Käufer liegen."},
+{text:"Er übernimmt nur die Versicherung.", correct:false, explanation:"Versicherung ist freiwillig."}
+]
+},
+
+{
+question: "Welche Zielsetzung verfolgt die Wirtschaftlichkeitsanalyse im Geschäftsprozess?",
+answers: [
+{text:"Ermittlung des günstigsten Preises ohne Leistungsbezug.", correct:false, explanation:"Wirtschaftlichkeit berücksichtigt Leistung und Kosten."},
+{text:"Vergleich von Kosten und Nutzen zur Entscheidungsfindung.", correct:true, explanation:"Wirtschaftlichkeit = Verhältnis von Ertrag zu Aufwand zur Optimierung von Entscheidungen."},
+{text:"Nur Reduzierung von Fixkosten.", correct:false, explanation:"Alle Kostenarten werden betrachtet."},
+{text:"Ausschließlich Umsatzsteigerung.", correct:false, explanation:"Umsatz allein sagt nichts über Wirtschaftlichkeit aus."}
+]
+},
+
+{
+question: "Ein Unternehmen exportiert Maschinen nach Kanada per Seefracht. Im Akkreditiv ist ein „sauberes Bordkonnossement“ gefordert. Was bedeutet das?",
+answers: [
+{text:"Das Schiff ist neu gebaut.", correct:false, explanation:"Der Zustand des Schiffes ist nicht gemeint."},
+{text:"Das Konnossement enthält keinen Vermerk über sichtbare Schäden an der Ware oder Verpackung.", correct:true, explanation:"Ein sauberes Bordkonnossement bestätigt, dass die Ware äußerlich in ordnungsgemäßem Zustand übernommen wurde und keine Schadensvermerke eingetragen sind."},
+{text:"Die Ware wurde bereits verzollt.", correct:false, explanation:"Die Verzollung ist unabhängig vom Konnossement."},
+{text:"Die Seefracht wurde vollständig bezahlt.", correct:false, explanation:"Die Frachtzahlung ist kein Bestandteil dieser Definition."}
+]
+},
+
+{
+question: "Ein Luftfrachtauftrag hat ein Volumengewicht von 1.200 kg und ein tatsächliches Gewicht von 950 kg. Worauf basiert die Frachtberechnung?",
+answers: [
+{text:"Auf dem tatsächlichen Gewicht.", correct:false, explanation:"In der Luftfracht gilt das frachtpflichtige Gewicht."},
+{text:"Auf dem niedrigeren Gewicht.", correct:false, explanation:"Es gilt immer das höhere Gewicht."},
+{text:"Auf dem höheren Wert aus Volumen- oder tatsächlichem Gewicht.", correct:true, explanation:"In der Luftfracht wird das frachtpflichtige Gewicht berechnet. Es gilt der höhere Wert aus tatsächlichem Gewicht oder Volumengewicht."},
+{text:"Auf einem Durchschnittswert beider Gewichte.", correct:false, explanation:"Ein Durchschnitt wird nicht gebildet."}
+]
+},
+
+// -------- Fragen 41–50 --------
+
+{
+question: "Ein Unternehmen erzielt einen Stückverkaufspreis von 50 €. Die variablen Stückkosten betragen 35 €. Wie hoch ist der Deckungsbeitrag pro Stück?",
+answers: [
+{text:"15 €", correct:true, explanation:"Deckungsbeitrag = Verkaufspreis – variable Kosten = 50 € – 35 € = 15 €."},
+{text:"35 €", correct:false, explanation:"Das sind die variablen Kosten."},
+{text:"50 €", correct:false, explanation:"Das ist der Verkaufspreis."},
+{text:"85 €", correct:false, explanation:"Rechnerisch nicht korrekt."}
+]
+},
+
+{
+question: "Ein Lieferant gewährt 10 % Rabatt und 2 % Skonto auf den Listenpreis von 20.000 €. Wie lautet der Zieleinkaufspreis nach Rabatt, aber vor Skonto?",
+answers: [
+{text:"18.000 €", correct:true, explanation:"20.000 € – 10 % Rabatt = 18.000 €. Der Skonto wird erst vom Zieleinkaufspreis berechnet."},
+{text:"17.600 €", correct:false, explanation:"Das wäre nach zusätzlichem Skonto."},
+{text:"19.800 €", correct:false, explanation:"Das entspricht nur 1 % Rabatt."},
+{text:"20.000 €", correct:false, explanation:"Rabatt wurde nicht berücksichtigt."}
+]
+},
+
+{
+question: "Welche Kennzahl zeigt, wie lange Waren durchschnittlich im Lager verbleiben?",
+answers: [
+{text:"Umsatzrentabilität", correct:false, explanation:"Diese misst den Gewinn im Verhältnis zum Umsatz."},
+{text:"Durchschnittliche Lagerdauer", correct:true, explanation:"Die durchschnittliche Lagerdauer gibt an, wie viele Tage eine Ware im Lager liegt."},
+{text:"Deckungsbeitrag", correct:false, explanation:"Der Deckungsbeitrag betrifft die Kostenrechnung."},
+{text:"Eigenkapitalquote", correct:false, explanation:"Das ist eine Finanzkennzahl."}
+]
+},
+
+{
+question: "Bei welchem Incoterm trägt der Verkäufer die Kosten bis zum benannten Bestimmungshafen, jedoch nicht die Entladung?",
+answers: [
+{text:"FOB", correct:false, explanation:"FOB endet am Verschiffungshafen."},
+{text:"CFR", correct:true, explanation:"Bei CFR trägt der Verkäufer die Kosten bis zum Bestimmungshafen, das Risiko geht jedoch bereits im Verschiffungshafen über."},
+{text:"EXW", correct:false, explanation:"EXW endet ab Werk."},
+{text:"FCA", correct:false, explanation:"FCA endet bei Übergabe an den ersten Frachtführer."}
+]
+},
+
+{
+question: "Ein Kunde fordert eine Lieferzeitverkürzung im Seeverkehr. Welche Maßnahme ist wirtschaftlich zu prüfen?",
+answers: [
+{text:"Umstellung auf Luftfracht unter Berücksichtigung höherer Kosten.", correct:true, explanation:"Ein Modalwechsel kann die Laufzeit erheblich verkürzen, ist jedoch kostenintensiver und muss wirtschaftlich bewertet werden."},
+{text:"Verzicht auf Transportversicherung.", correct:false, explanation:"Dies beeinflusst nicht die Laufzeit."},
+{text:"Reduzierung der Verpackung.", correct:false, explanation:"Das hat keine direkte Auswirkung auf die Transportdauer."},
+{text:"Änderung der Rechnungswährung.", correct:false, explanation:"Die Währung beeinflusst nicht die Laufzeit."}
+]
+},
+
+{
+question: "Ein Lagerbestand beträgt 500.000 €. Der Zinssatz für gebundenes Kapital liegt bei 6 %. Wie hoch sind die jährlichen kalkulatorischen Zinsen?",
+answers: [
+{text:"30.000 €", correct:true, explanation:"500.000 € × 6 % = 30.000 € kalkulatorische Zinsen."},
+{text:"3.000 €", correct:false, explanation:"Das wären 0,6 %."},
+{text:"50.000 €", correct:false, explanation:"Das entspricht 10 %."},
+{text:"6.000 €", correct:false, explanation:"Rechnerisch falsch."}
+]
+},
+
+{
+question: "Welche Funktion erfüllt die Ausfuhranmeldung im ATLAS-System?",
+answers: [
+{text:"Sie dient der elektronischen Anmeldung der Ware beim Zoll zur Ausfuhr.", correct:true, explanation:"Über ATLAS wird die Ausfuhr elektronisch angemeldet und zollrechtlich überwacht."},
+{text:"Sie ersetzt das Konnossement.", correct:false, explanation:"Transportdokumente bleiben separat."},
+{text:"Sie ist nur für Importe notwendig.", correct:false, explanation:"ATLAS wird auch im Export genutzt."},
+{text:"Sie ist ausschließlich ein Bankdokument.", correct:false, explanation:"Es handelt sich um ein Zollverfahren."}
+]
+},
+
+{
+question: "Ein Unternehmen erwägt Eigenlager oder Fremdlager. Welche Kostenart ist bei Eigenlager typischerweise höher?",
+answers: [
+{text:"Fixkosten", correct:true, explanation:"Eigenlager verursachen hohe Fixkosten (Miete, Personal, Abschreibungen), unabhängig von der Auslastung."},
+{text:"Variable Kommissionierkosten", correct:false, explanation:"Diese fallen auch im Fremdlager an."},
+{text:"Zollkosten", correct:false, explanation:"Zollkosten sind unabhängig vom Lagerkonzept."},
+{text:"Transportversicherung", correct:false, explanation:"Diese ist lagerunabhängig."}
+]
+},
+
+{
+question: "Welche Aufgabe hat ein Spediteur im Luftfrachtverkehr?",
+answers: [
+{text:"Er organisiert den Transport und tritt als Versender gegenüber der Airline auf.", correct:true, explanation:"Der Spediteur bündelt Sendungen, organisiert die Abwicklung und erstellt den Air Waybill."},
+{text:"Er stellt das Flugzeug bereit.", correct:false, explanation:"Das übernimmt die Airline."},
+{text:"Er führt die Zollprüfung im Ausland durch.", correct:false, explanation:"Zollbehörden sind staatliche Stellen."},
+{text:"Er garantiert die Zahlung des Importeurs.", correct:false, explanation:"Das ist Aufgabe der Bank bei entsprechenden Zahlungsbedingungen."}
+]
+},
+
+{
+question: "Ein Unternehmen hat Fixkosten von 200.000 € und einen Stückdeckungsbeitrag von 25 €. Wie viele Einheiten müssen mindestens verkauft werden, um die Gewinnzone zu erreichen?",
+answers: [
+{text:"8.000 Stück", correct:true, explanation:"Break-even-Menge = Fixkosten / Stückdeckungsbeitrag = 200.000 € / 25 € = 8.000 Stück."},
+{text:"5.000 Stück", correct:false, explanation:"Rechnerisch nicht ausreichend."},
+{text:"25.000 Stück", correct:false, explanation:"Falsche Berechnung."},
+{text:"200.000 Stück", correct:false, explanation:"Fixkosten wurden nicht geteilt."}
+]
+},
+
+];
+
+// ---------------------- QUIZLOGIK ----------------------
+
+let selectedQuestions = [];
+let currentQuestion = 0;
+let score = 0;
+
+function shuffle(array){
+return array.sort(()=>Math.random()-0.5);
+}
+
+function startQuiz(){
+selectedQuestions = shuffle([...questions]).slice(0,10);
+currentQuestion=0;
+score=0;
+showQuestion();
+}
+
+function showQuestion(){
+const quizDiv=document.getElementById("quiz");
+quizDiv.innerHTML="";
+
+if(currentQuestion>=selectedQuestions.length){
+showResult();
+return;
+}
+
+let q=selectedQuestions[currentQuestion];
+
+let progress=document.createElement("div");
+progress.className="progress";
+progress.innerText="Frage "+(currentQuestion+1)+" von 10";
+quizDiv.appendChild(progress);
+
+let question=document.createElement("div");
+question.className="question";
+question.innerText=q.question;
+quizDiv.appendChild(question);
+
+let shuffledAnswers=shuffle([...q.answers]);
+
+shuffledAnswers.forEach(answer=>{
+let btn=document.createElement("button");
+btn.className="answer-btn";
+btn.innerText=answer.text;
+btn.onclick=()=>selectAnswer(btn,answer,q);
+quizDiv.appendChild(btn);
+});
+}
+
+function selectAnswer(button,answer,q){
+let buttons=document.querySelectorAll(".answer-btn");
+buttons.forEach(b=>b.disabled=true);
+
+if(answer.correct){
+button.classList.add("correct");
+score++;
+}else{
+button.classList.add("wrong");
+buttons.forEach(b=>{
+if(b.innerText===q.answers.find(a=>a.correct).text){
+b.classList.add("correct");
+}
+});
+}
+
+let feedback=document.createElement("div");
+feedback.className="feedback";
+feedback.innerText=answer.explanation;
+document.getElementById("quiz").appendChild(feedback);
+
+let next=document.createElement("button");
+next.className="next-btn";
+next.innerText="Weiter";
+next.onclick=()=>{
+currentQuestion++;
+showQuestion();
+};
+document.getElementById("quiz").appendChild(next);
+}
+
+function showResult(){
+let percent=Math.round((score/10)*100);
+let level="";
+if(percent>=90){level="Sehr gut vorbereitet – oberes Prüfungsniveau";}
+else if(percent>=75){level="Gut vorbereitet – kleinere Schwächen analysieren";}
+else if(percent>=60){level="Solide Grundlagen – gezielte Vertiefung empfohlen";}
+else if(percent>=40){level="Deutliche Lücken – Wiederholung notwendig";}
+else{level="Dringender Handlungsbedarf";}
+
+document.getElementById("quiz").innerHTML=`
+<div class="result">
+<h2>Ergebnis</h2>
+<p><strong>${score}/10 richtig</strong></p>
+<p>${percent}%</p>
+<p>${level}</p>
+<p>Analysiere insbesondere Rechenwege, Incoterms-Logik und Kostenstrukturfragen. Die IHK prüft vor allem Entscheidungsfähigkeit und saubere Anwendung von Fachbegriffen.</p>
+<button class="next-btn" onclick="startQuiz()">Neues Quiz starten</button>
+<div class="footer-icons">🚢 ✈️ 📦 🏢</div>
+</div>
+`;
+}
+
+startQuiz();
+</script>
+</body>
+</html>
